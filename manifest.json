@@ -1,0 +1,13 @@
+{
+	"manifest_version": 2,
+	"name": "Deezer Volume Scroll",
+	"version": "1.0",
+	"description": "Scroll on Deezer volume icon to adjust volume",
+	"permissions": ["activeTab"],
+	"content_scripts": [
+		{
+			"matches": ["*://*.deezer.com/*"],
+			"js": ["content.js"]
+		}
+	]
+}
