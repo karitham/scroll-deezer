@@ -1,12 +1,29 @@
 // Content script for Deezer volume scroll extension
 
+function getPopover(volumeButton) {
+	const popoverId = volumeButton?.getAttribute("aria-controls");
+	return popoverId ? document.getElementById(popoverId) : null;
+}
+
 function findVolumeElement() {
 	const volumeButton = document.querySelector(
 		'[data-testid="volume_button_default"]',
 	);
-	const popoverId = volumeButton?.getAttribute("aria-controls");
-	const popover = popoverId ? document.getElementById(popoverId) : null;
+	const popover = getPopover(volumeButton);
 	return popover?.querySelector('input[type="range"]') || null;
+}
+
+function calculateNewVolume(currentValue, max, min, direction) {
+	const factor = 1.1;
+	const currentRatio = Math.max(0.001, currentValue / max);
+	const newRatio =
+		currentRatio < 0.1
+			? currentRatio + 0.01 * direction
+			: direction > 0
+				? currentRatio * factor
+				: currentRatio / factor;
+
+	return Math.max(min, Math.min(max, newRatio * max));
 }
 
 function adjustVolumeOnElement(element, delta) {
@@ -15,10 +32,9 @@ function adjustVolumeOnElement(element, delta) {
 	const currentValue = parseFloat(element.value);
 	const max = parseFloat(element.max) || 100;
 	const min = parseFloat(element.min) || 0;
-	const step = parseFloat(element.step) || 1;
 	const direction = delta > 0 ? 1 : -1;
 
-	element.value = Math.max(min, Math.min(max, currentValue + step * direction));
+	element.value = calculateNewVolume(currentValue, max, min, direction);
 	element.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
@@ -30,8 +46,7 @@ function adjustVolume(delta) {
 }
 
 function isPopoverOpen(volumeButton) {
-	const popoverId = volumeButton?.getAttribute("aria-controls");
-	const popover = popoverId ? document.getElementById(popoverId) : null;
+	const popover = getPopover(volumeButton);
 	return popover && popover.style.display !== "none" && !popover.hidden;
 }
 
