@@ -13,6 +13,7 @@
           buildInputs = with pkgs; [
             nodejs
             web-ext
+            gnused
           ];
         };
       }
