@@ -4,6 +4,9 @@
 	"version": "1.0",
 	"description": "Scroll on Deezer volume icon to adjust volume",
 	"permissions": ["activeTab"],
+	"browser_specific_settings": {
+		"gecko": { "id": "{89c6f8c0-c7b4-46b6-a1ca-d964c8247c5b}" }
+	},
 	"content_scripts": [
 		{
 			"matches": ["*://*.deezer.com/*"],

@@ -1,0 +1,45 @@
+name: Build and Release Extension
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v20
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+
+    - name: Build extension
+      run: nix develop --command bash -c "web-ext build --overwrite-dest"
+
+    - name: Get extension filename
+      id: extension
+      run: echo "filename=$(ls web-ext-artifacts/*.xpi)" >> $GITHUB_OUTPUT
+
+    - name: Get build date
+      id: date
+      run: echo "date=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+
+    - name: Create nightly release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: nightly-${{ github.run_number }}
+        name: Nightly Build ${{ github.run_number }}
+        body: |
+          Automated nightly build of Deezer Volume Scroll extension.
+
+          Built from commit: ${{ github.sha }}
+          Build date: ${{ steps.date.outputs.date }}
+        files: web-ext-artifacts/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
